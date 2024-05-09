@@ -1,58 +1,58 @@
 #!/bin/bash
-# Проверка установки Promtail
+# Checking Promtail installation
 if apt-cache policy promtail | grep none
 then
-echo "Промтейл не установлен"
+echo "Promtail is not installed"
 cd $HOME
-echo "Будет установлен unzip для установки Промтейл"
+echo "Zip app will be installed to help Promtail installation"
 sudo apt-get install unzip -y
 sudo wget https://github.com/grafana/loki/releases/download/v3.0.0/promtail-linux-amd64.zip
 sudo unzip ./promtail-linux-amd64.zip
 sudo wget https://raw.githubusercontent.com/grafana/loki/main/clients/cmd/promtail/promtail-local-config.yaml
 sudo sed -i 's/localhost:3100/195.201.98.42:3100/g' promtail-local-config.yaml
 sudo sed -i 's|*log|caddy/*log|g' promtail-local-config.yaml
-echo "Промтейл установлен и настроен"
+echo "Promtail installed and configured"
 else
-echo "Промтейл уже установлен:"
+echo "Promtail installed in:"
 which promtail
 cd $HOME
 fi
 
-#Настройка в случае существуюшего конфига или его отсутствия
+#Configuring in case of matching config file
 if grep localhost:3100 $HOME/promtail-local-config.yaml
 then
-echo "Будет выполнена настройка конфигурации сервера Локи"
+echo "Configuring Loki server"
 sudo sed -i 's/localhost:3100/195.201.98.42:3100/g' promtail-local-config.yaml
 else
-echo "Файл не найден или настройка хоста сервера Локи не требуется"
+echo "Config file hasn't beed found and will be installed and configured"
 sudo wget https://raw.githubusercontent.com/grafana/loki/main/clients/cmd/promtail/promtail-local-config.yaml
 sudo sed -i 's/localhost:3100/195.201.98.42:3100/g' promtail-local-config.yaml
 fi
 
 if grep log/*log $HOME/promtail-local-config.yaml
 then
-echo "Требуется настройка пути логгирования"
+echo "Configuring logging path"
 sudo sed -i 's|*log|caddy/*log|g' promtail-local-config.yaml
-echo "Выполнено"
+echo "Done"
 else
-echo "Путь логгирования уже настроен"
+echo "Logging path already been modified"
 fi
 
-#Проверка исполняемого файла Промтейл"
+#Checking Promtail exec file"
 if -f $HOME/promtail-linux-amd64
 then
-echo "Файл Промтейл установлен в домашней директории"
+echo "Promtail exec file installed in home directory"
 else
-echo "Файл Промтейла не найден и будет установлен"
-echo "Будет установлен unzip для установки Промтейл"
+echo "Promtail exec file hasn't been found and will be installed"
+echo "Zip app will be installed to help Promtail installation"
 sudo apt-get install unzip -y
 cd $HOME
 sudo wget https://github.com/grafana/loki/releases/download/v3.0.0/promtail-linux-amd64.zip
 sudo unzip ./promtail-linux-amd64.zip
-echo "Исполняемый файл Промтейл установлен по пути:"
+echo "Promtail exec file is installed in:"
 echo $HOME
 
-#Подготовка службы
+#Service configuration
 touch /etc/systemd/system/promtail.service
 sudo cat > /etc/systemd/system/promtail.service << EOF
 [Unit]
@@ -75,4 +75,4 @@ EOF
 sudo systemctl daemon-restart
 sudo systemctl enable promtail.service
 sudo systemctl start promtail.service
-echo "В теории все должно работать, нужен фидбек"
+echo "Things must work well. Please report any misconfigurations in discord"
